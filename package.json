@@ -1,0 +1,35 @@
+{
+  "name": "amdextract",
+  "version": "0.1.0",
+  "description": "Extracts AMD modules and their parts.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mehdishojaei/amdextract.git"
+  },
+  "keywords": [
+    "AMD",
+    "dependency",
+    "unused",
+    "useless",
+    "extract",
+    "detect",
+    "parse",
+    "optimize",
+    "analyze",
+    "source"
+  ],
+  "author": {
+    "name": "Mehdi Shojaei",
+    "email": "msh6180339@gmail.com",
+    "url": "https://github.com/mehdishojaei"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mehdishojaei/amdextract/issues"
+  },
+  "homepage": "https://github.com/mehdishojaei/amdextract"
+}
