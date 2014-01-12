@@ -60,21 +60,21 @@ JavaScript source for parsing.
 
 #### options
 
-- excepts  
+##### excepts  
 Type: Array  
 Default value: []  
 
 An array of strings or RegExps that represent dependency names that should not take into account.
 
-- exceptsPaths  
+##### exceptsPaths  
 Type: Array  
 Default value: []  
 
 An array of strings or RegExps that represent dependency paths that should not take into account.
 
-- removeUnusedDependencies  
+##### removeUnusedDependencies  
 Type: Boolean  
-Default value:  
+Default value: false
 
 Removes unused dependencies from `content` and returns optimized content as `optimizedContent` property of result.
 
