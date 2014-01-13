@@ -1,6 +1,6 @@
 # amdextract
 
-Extracts AMD modules and their parts.
+Extracts AMD modules, their parts and an optimized output without unused dependencies.
 
 ## example
 
