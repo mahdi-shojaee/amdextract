@@ -78,6 +78,30 @@ Default value: false
 
 Removes unused dependencies from `content` and returns optimized content as `optimizedContent` property of result.
 
+#### returns
+
+Returns an object with the following properties:
+
+##### results  
+Type: Array  
+
+An array of hash objects witch have this properties for each AMD module detected in `content`:
+
+- `moduleId`
+- `paths`
+- `dependencies`
+- `unusedPaths`
+- `unusedDependencies`
+- `bodyWithComments`
+- `bodyWithoutComments`
+- `comments`
+
+##### optimizedContent  
+Type: String  
+
+Optimized `content` that its unused dependencies removed.  
+This property is available when option `removeUnusedDependencies` is true.
+
 ## Release History
  * 2014-01-13   v0.1.0   Works on files with multiple modules. Can detect module id if provided. Can remove unused dependencies. Add the new `exceptsPaths` option. Options `excepts` and `exceptsPaths` can take RegExps.
  
