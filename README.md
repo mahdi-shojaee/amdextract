@@ -50,39 +50,39 @@ define(["view/b"], function (b) {
 });
 ```
 
-## methods
+# methods
 
-### parse(content[, options])
+## parse(content[, options])
 
-#### content
+### content
 Type: string  
 JavaScript source for parsing.
 
-#### options
+### options
 
-##### excepts  
+#### excepts  
 Type: Array  
 Default value: []  
 
 An array of strings or RegExps that represent dependency names that should not take into account.
 
-##### exceptsPaths  
+#### exceptsPaths  
 Type: Array  
 Default value: []  
 
 An array of strings or RegExps that represent dependency paths that should not take into account.
 
-##### removeUnusedDependencies  
+#### removeUnusedDependencies  
 Type: Boolean  
 Default value: false
 
 Removes unused dependencies from `content` and returns optimized content as `optimizedContent` property of result.
 
-#### returns
+### returns
 
 Returns an object with the following properties:
 
-##### results  
+#### results  
 Type: Array  
 
 An array of hash objects witch have this properties for each AMD module detected in `content`:
@@ -96,7 +96,7 @@ An array of hash objects witch have this properties for each AMD module detected
 - `bodyWithoutComments`
 - `comments`
 
-##### optimizedContent  
+#### optimizedContent  
 Type: String  
 
 Optimized `content` that its unused dependencies removed.  
