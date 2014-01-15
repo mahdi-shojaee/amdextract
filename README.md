@@ -99,7 +99,7 @@ An array of hash objects witch have this properties for each AMD module detected
 #### optimizedContent  
 Type: String  
 
-Optimized `content` that its unused dependencies removed.  
+Optimized `content` (original content without unused dependencies).  
 This property is available when option `removeUnusedDependencies` is true.
 
 ## Release History
