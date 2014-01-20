@@ -8,7 +8,7 @@
 
 'use strict';
 
-var defineRegExp = /define\s*\(\s*(?:['"](.*)['"]\s*,\s*)?(?:\[\s*([^]*?)\s*\]\s*,)?\s*function\s*\(\s*([^]*?)\s*\)\s*\{/gm,
+var defineRegExp = /(?:\/[\*\/]\s*exceptsPaths\s*\:\s*([^]+?)\s*(?:(?:\*\/)|(?:[\r\n]+)))?\s*define\s*\(\s*(?:['"](.*)['"]\s*,\s*)?(?:\[\s*([^]*?)\s*\]\s*,)?\s*function\s*\(\s*([^]*?)\s*\)\s*\{/gm,
 commentRegExp = /(?:\/\*[^]*?\*\/)|(?:\/\/[^]*?$)/gm,
 commaRegExp = /\s*,\s*/,
 
@@ -72,14 +72,20 @@ module.exports.parse = function (content, options) {
 	
 	var results = [];
 
-	var output = content.replace(defineRegExp, function (match, moduleId, pathsStr, dependenciesStr, offset) {
+	var output = content.replace(defineRegExp, function (match, exceptsPathsStr, moduleId, pathsStr, dependenciesStr, offset) {
 		var text = content.substr(offset + match.length - 1), // Unprocessed
         	paths, dependencies, commentlessPathsStr, commentlessDependenciesStr,
 			unusedDependencies = [],
 			unusedPaths = [],
+			exceptsPaths = [],
+			excepts = options.excepts,
 			body, // Module body with comments
 			source, // Module body without comments
 			comments; // Array of inline and block comments
+
+		if (exceptsPathsStr) {
+			exceptsPaths = options.exceptsPaths.concat(exceptsPathsStr.split(commaRegExp));
+		}
 
 		commentlessPathsStr = removeComments(pathsStr).source;
 		commentlessDependenciesStr = removeComments(dependenciesStr).source;
@@ -98,8 +104,8 @@ module.exports.parse = function (content, options) {
 					comments = rcResult.comments;
 
 					unusedDependencies = dependencies.filter(function (dependency) {
-					  return !isException(options.excepts, dependency) &&
-					         !isException(options.exceptsPaths, paths[dependencies.indexOf(dependency)]) &&
+					  return !isException(excepts, dependency) &&
+					         !isException(exceptsPaths, paths[dependencies.indexOf(dependency)]) &&
 					         !findUseage(dependency, source);
 					});
 
