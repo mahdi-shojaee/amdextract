@@ -112,6 +112,6 @@ Optimized `content` (original content without unused dependencies).
 This property is available when option `removeUnusedDependencies` is true.
 
 ## Release History
- * 2014-01-20   v0.1.1   'exceptsPaths' can also be defined before each module definition.
+ * 2014-01-20   v0.1.1   `exceptsPaths` can also be defined before each module definition.
  * 2014-01-13   v0.1.0   Works on files with multiple modules. Can detect module id if provided. Can remove unused dependencies. Add the new `exceptsPaths` option. Options `excepts` and `exceptsPaths` can take RegExps.
  
