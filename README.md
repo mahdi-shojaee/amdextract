@@ -72,7 +72,7 @@ Default value: []
 
 An array of strings or RegExps that represent dependency paths that should not take into account.
 
-NOTE: `exceptsPaths` can also be declared before each module definition as a comment of strings of module paths separated by commas.
+NOTE: `exceptsPaths` can also be declared before each module definition as a comment of strings of module paths separated by commas. This only applies on the underlying module definition.
 
 ``` js
 /* exceptsPaths: view/c */
