@@ -109,7 +109,7 @@ An array of hash objects witch have this properties for each AMD module detected
 Type: String  
 
 Optimized `content` (original content without unused dependencies).  
-This property is available when option `removeUnusedDependencies` is true.
+This property is available when the value of option `removeUnusedDependencies` is true.
 
 ## Release History
  * 2014-01-20   v0.1.1   `exceptsPaths` can also be defined before each module definition.
