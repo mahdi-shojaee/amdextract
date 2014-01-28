@@ -6,11 +6,11 @@ Extracts AMD modules, their parts and an optimized output without unused depende
 
 source.js  
 ``` js
-define(["view/a", "view/b"], function (a, b) {
+define("module1", ["view/a", "view/b"], function (a, b) {
 	var t = new a();
 });
 
-define(["view/a", "view/b", "view/c"], function (a, b, c) {
+define("module2", ["view/a", "view/b", "view/c"], function (a, b, c) {
 	b.fetch();
 });
 ```
