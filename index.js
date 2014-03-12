@@ -69,7 +69,7 @@ module.exports.parse = function (content, options) {
 	options = options || {};
 	options.excepts = Array.isArray(options.excepts) ? options.excepts : [];
 	options.exceptsPaths = Array.isArray(options.exceptsPaths) ? options.exceptsPaths : [];
-	
+
 	var results = [];
 
 	var output = content.replace(defineRegExp, function (match, exceptsPathsStr, moduleId, pathsStr, dependenciesStr, offset) {
@@ -119,6 +119,8 @@ module.exports.parse = function (content, options) {
 					unusedPaths = unusedDependencies.map(function (dependency) {
 						return paths[dependencies.indexOf(dependency)];
 					});
+
+          unusedPaths = unusedPaths.concat(paths.slice(dependencies.length));
 
 					results.push({
 						moduleId: moduleId,
