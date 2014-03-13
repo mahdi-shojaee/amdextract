@@ -66,97 +66,97 @@ isException = function (exceptions, dependency) {
 };
 
 module.exports.parse = function (content, options) {
-	options = options || {};
-	options.excepts = Array.isArray(options.excepts) ? options.excepts : [];
-	options.exceptsPaths = Array.isArray(options.exceptsPaths) ? options.exceptsPaths : [];
-	
-	var results = [];
+  options = options || {};
+  options.excepts = Array.isArray(options.excepts) ? options.excepts : [];
+  options.exceptsPaths = Array.isArray(options.exceptsPaths) ? options.exceptsPaths : [];
 
-	var output = content.replace(defineRegExp, function (match, exceptsPathsStr, moduleId, pathsStr, dependenciesStr, offset) {
-		var text = content.substr(offset + match.length - 1), // Unprocessed
-        	paths, dependencies,
-        	commentlessPathsStr, commentlessDependenciesStr,
-			unusedDependencies = [],
-			unusedPaths = [],
-			exceptsPaths = [],
-			excepts = options.excepts,
-			body, // Module body with comments
-			source, // Module body without comments
-			comments; // Array of inline and block comments
+  var results = [];
 
-		if (exceptsPathsStr) {
-			exceptsPaths = options.exceptsPaths.concat(exceptsPathsStr.split(commaRegExp));
-		}
+  var output = content.replace(defineRegExp, function (match, exceptsPathsStr, moduleId, pathsStr, dependenciesStr, offset) {
+    var text = content.substr(offset + match.length - 1), // Unprocessed
+        paths, dependencies,
+        commentlessPathsStr, commentlessDependenciesStr,
+        unusedDependencies = [],
+        unusedPaths = [],
+        exceptsPaths = [],
+        excepts = options.excepts,
+        body, // Module body with comments
+        source, // Module body without comments
+        comments; // Array of inline and block comments
 
-		commentlessPathsStr = removeComments(pathsStr).source;
-		commentlessDependenciesStr = removeComments(dependenciesStr).source;
+    if (exceptsPathsStr) {
+      exceptsPaths = options.exceptsPaths.concat(exceptsPathsStr.split(commaRegExp));
+    }
 
-		paths = commentlessPathsStr ? commentlessPathsStr.split(commaRegExp).map(function (p) {
-			return {
-				path: p.substr(1, p.length - 2),
-				quote: p[0]
-			};
-		}) : [];
+    commentlessPathsStr = removeComments(pathsStr).source;
+    commentlessDependenciesStr = removeComments(dependenciesStr).source;
 
-		dependencies = commentlessDependenciesStr ? commentlessDependenciesStr.split(commaRegExp) : [];
+    paths = commentlessPathsStr ? commentlessPathsStr.split(commaRegExp).map(function (p) {
+      return {
+        path: p.substr(1, p.length - 2),
+        quote: p[0]
+      };
+    }) : [];
 
-		if (text) {
-			body = getModuleBody(text);
+    dependencies = commentlessDependenciesStr ? commentlessDependenciesStr.split(commaRegExp) : [];
 
-			if (body) {
-				var rcResult = removeComments(body);
+    if (text) {
+      body = getModuleBody(text);
 
-				if (rcResult) {
-					source = rcResult.source;
-					comments = rcResult.comments;
+      if (body) {
+        var rcResult = removeComments(body);
 
-					unusedDependencies = dependencies.filter(function (dependency) {
-					  return !isException(excepts, dependency) &&
-					         !isException(exceptsPaths, paths[dependencies.indexOf(dependency)].path) &&
-					         !findUseage(dependency, source);
-					});
+        if (rcResult) {
+          source = rcResult.source;
+          comments = rcResult.comments;
 
-					unusedPaths = unusedDependencies.map(function (dependency) {
-						return paths[dependencies.indexOf(dependency)];
-					});
+          unusedDependencies = dependencies.filter(function (dependency) {
+            return !isException(excepts, dependency) &&
+                   !isException(exceptsPaths, paths[dependencies.indexOf(dependency)].path) &&
+                   !findUseage(dependency, source);
+          });
 
-					results.push({
-						moduleId: moduleId,
-						paths: paths.map(function (p) { return p.path; }),
-						unusedPaths: unusedPaths.map(function (p) { return p.path; }),
-						dependencies: dependencies,
-						unusedDependencies: unusedDependencies,
-						bodyWithComments: body,
-						bodyWithoutComments: source,
-						comments: comments
-					});
-				}
-			}
-		}
+          unusedPaths = unusedDependencies.map(function (dependency) {
+            return paths[dependencies.indexOf(dependency)];
+          });
 
-		if (options.removeUnusedDependencies) {
-			var usedDependencies = dependencies.filter(function (dependency) {
-				return unusedDependencies.indexOf(dependency) < 0;
-			});
+          results.push({
+            moduleId: moduleId,
+            paths: paths.map(function (p) { return p.path; }),
+            unusedPaths: unusedPaths.map(function (p) { return p.path; }),
+            dependencies: dependencies,
+            unusedDependencies: unusedDependencies,
+            bodyWithComments: body,
+            bodyWithoutComments: source,
+            comments: comments
+          });
+        }
+      }
+    }
 
-			var usedPaths = paths.filter(function (dependency) {
-				return unusedPaths.indexOf(dependency) < 0;
-			});
+    if (options.removeUnusedDependencies) {
+      var usedDependencies = dependencies.filter(function (dependency) {
+        return unusedDependencies.indexOf(dependency) < 0;
+      });
 
-			match = match.replace(pathsStr, usedPaths.map(function (p) { return p.quote + p.path + p.quote; }).join(', '))
-			        .replace(dependenciesStr, usedDependencies.join(', '));
-		}
+      var usedPaths = paths.filter(function (dependency) {
+        return unusedPaths.indexOf(dependency) < 0;
+      });
 
-		return match;
-	});
+      match = match.replace(pathsStr, usedPaths.map(function (p) { return p.quote + p.path + p.quote; }).join(', '))
+              .replace(dependenciesStr, usedDependencies.join(', '));
+    }
 
-	var result = {
-		results: results
-	};
+    return match;
+  });
 
-	if (options.removeUnusedDependencies) {
-		result.optimizedContent = output;
-	}
+  var result = {
+    results: results
+  };
 
-	return result;
+  if (options.removeUnusedDependencies) {
+    result.optimizedContent = output;
+  }
+
+  return result;
 };
