@@ -74,7 +74,8 @@ module.exports.parse = function (content, options) {
 
 	var output = content.replace(defineRegExp, function (match, exceptsPathsStr, moduleId, pathsStr, dependenciesStr, offset) {
 		var text = content.substr(offset + match.length - 1), // Unprocessed
-        	paths, dependencies, commentlessPathsStr, commentlessDependenciesStr,
+        	paths, dependencies,
+        	commentlessPathsStr, commentlessDependenciesStr,
 			unusedDependencies = [],
 			unusedPaths = [],
 			exceptsPaths = [],
@@ -90,10 +91,16 @@ module.exports.parse = function (content, options) {
 		commentlessPathsStr = removeComments(pathsStr).source;
 		commentlessDependenciesStr = removeComments(dependenciesStr).source;
 
-		paths = commentlessPathsStr ? commentlessPathsStr.split(commaRegExp).map(function (p) { return p.substr(1, p.length - 2); }) : [];
+		paths = commentlessPathsStr ? commentlessPathsStr.split(commaRegExp).map(function (p) {
+			return {
+				path: p.substr(1, p.length - 2),
+				quote: p[0]
+			};
+		}) : [];
+
 		dependencies = commentlessDependenciesStr ? commentlessDependenciesStr.split(commaRegExp) : [];
 
-		if (paths && dependencies && text) {
+		if (text) {
 			body = getModuleBody(text);
 
 			if (body) {
@@ -105,7 +112,7 @@ module.exports.parse = function (content, options) {
 
 					unusedDependencies = dependencies.filter(function (dependency) {
 					  return !isException(excepts, dependency) &&
-					         !isException(exceptsPaths, paths[dependencies.indexOf(dependency)]) &&
+					         !isException(exceptsPaths, paths[dependencies.indexOf(dependency)].path) &&
 					         !findUseage(dependency, source);
 					});
 
@@ -115,9 +122,9 @@ module.exports.parse = function (content, options) {
 
 					results.push({
 						moduleId: moduleId,
-						paths: paths,
+						paths: paths.map(function (p) { return p.path; }),
+						unusedPaths: unusedPaths.map(function (p) { return p.path; }),
 						dependencies: dependencies,
-						unusedPaths: unusedPaths,
 						unusedDependencies: unusedDependencies,
 						bodyWithComments: body,
 						bodyWithoutComments: source,
@@ -136,7 +143,7 @@ module.exports.parse = function (content, options) {
 				return unusedPaths.indexOf(dependency) < 0;
 			});
 
-			match = match.replace(pathsStr, usedPaths.map(function (p) { return '"' + p + '"'; }).join(', '))
+			match = match.replace(pathsStr, usedPaths.map(function (p) { return p.quote + p.path + p.quote; }).join(', '))
 			        .replace(dependenciesStr, usedDependencies.join(', '));
 		}
 
