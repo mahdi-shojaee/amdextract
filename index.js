@@ -120,6 +120,8 @@ module.exports.parse = function (content, options) {
             return paths[dependencies.indexOf(dependency)];
           });
 
+          unusedPaths = unusedPaths.concat(paths.slice(dependencies.length));
+
           results.push({
             moduleId: moduleId,
             paths: paths.map(function (p) { return p.path; }),
