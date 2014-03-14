@@ -4,7 +4,7 @@ Extracts AMD modules, their parts and an optimized output without unused depende
 
 ## example
 
-source.js  
+source.js
 ``` js
 define("module1", ["view/a", "view/b"], function (a, b) {
 	var t = new a();
@@ -15,7 +15,7 @@ define("module2", ["view/a", "view/b", "view/c"], function (a, b, c) {
 });
 ```
 
-example.js  
+example.js
 ``` js
 var fs = require('fs');
 var amdextract = require('amdextract');
@@ -33,7 +33,7 @@ console.log('\nOptimized output:');
 console.log(result.optimizedContent);
 ```
 
-coutput  
+coutput
 ``` console
 2 modules detected.
 Unused paths: view/b
@@ -55,20 +55,20 @@ define(["view/b"], function (b) {
 ## parse(content[, options])
 
 ### content
-Type: string  
+Type: string
 JavaScript source for parsing.
 
 ### options
 
-#### excepts  
-Type: Array  
-Default value: []  
+#### excepts
+Type: Array
+Default value: []
 
 An array of strings or RegExps that represent dependency names that should not take into account.
 
-#### exceptsPaths  
-Type: Array  
-Default value: []  
+#### exceptsPaths
+Type: Array
+Default value: []
 
 An array of strings or RegExps that represent dependency paths that should not take into account.
 
@@ -81,8 +81,8 @@ define(["view/a", "view/b", "view/c"], function (a, b, c) {
 });
 ```
 
-#### removeUnusedDependencies  
-Type: Boolean  
+#### removeUnusedDependencies
+Type: Boolean
 Default value: false
 
 Removes unused dependencies from `content` and returns optimized content as `optimizedContent` property of result.
@@ -91,8 +91,8 @@ Removes unused dependencies from `content` and returns optimized content as `opt
 
 Returns an object with the following properties:
 
-#### results  
-Type: Array  
+#### results
+Type: Array
 
 An array of hash objects witch have this properties for each AMD module detected in `content`:
 
@@ -105,14 +105,15 @@ An array of hash objects witch have this properties for each AMD module detected
 - `bodyWithoutComments`
 - `comments`
 
-#### optimizedContent  
-Type: String  
+#### optimizedContent
+Type: String
 
-Optimized `content` (original content without unused dependencies).  
+Optimized `content` (original content without unused dependencies).
 This property is available when the value of option `removeUnusedDependencies` is true.
 
 ## Release History
+ * 2014-03-06   v0.1.3   Detects paths without corresponding dependency as unused.
  * 2014-03-06   v0.1.2   Dependency quotes in `optimizedContent` will be same as the original source.
  * 2014-01-20   v0.1.1   `exceptsPaths` can also be defined before each module definition.
  * 2014-01-13   v0.1.0   Works on files with multiple modules. Can detect module id if provided. Can remove unused dependencies. Add the new `exceptsPaths` option. Options `excepts` and `exceptsPaths` can take RegExps.
- 
+
