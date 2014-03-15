@@ -31,5 +31,8 @@
   "bugs": {
     "url": "https://github.com/mehdishojaei/amdextract/issues"
   },
-  "homepage": "https://github.com/mehdishojaei/amdextract"
+  "homepage": "https://github.com/mehdishojaei/amdextract",
+  "devDependencies": {
+    "should": "~3.1.3"
+  }
 }
