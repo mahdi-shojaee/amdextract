@@ -1,4 +1,5 @@
 # amdextract
+[![Build Status](https://travis-ci.org/mehdishojaei/amdextract.png)](https://travis-ci.org/mehdishojaei/amdextract)
 
 Extracts AMD modules, their parts and an optimized output without unused dependencies.
 
