@@ -102,37 +102,34 @@ module.exports.parse = function (content, options) {
 
     if (text) {
       body = getModuleBody(text);
+      var rcResult = removeComments(body);
 
-      if (body) {
-        var rcResult = removeComments(body);
+      if (rcResult) {
+        source = rcResult.source;
+        comments = rcResult.comments;
 
-        if (rcResult) {
-          source = rcResult.source;
-          comments = rcResult.comments;
+        unusedDependencies = dependencies.filter(function (dependency) {
+          return !isException(excepts, dependency) &&
+                 !isException(exceptsPaths, paths[dependencies.indexOf(dependency)].path) &&
+                 !findUseage(dependency, source);
+        });
 
-          unusedDependencies = dependencies.filter(function (dependency) {
-            return !isException(excepts, dependency) &&
-                   !isException(exceptsPaths, paths[dependencies.indexOf(dependency)].path) &&
-                   !findUseage(dependency, source);
-          });
+        unusedPaths = unusedDependencies.map(function (dependency) {
+          return paths[dependencies.indexOf(dependency)];
+        });
 
-          unusedPaths = unusedDependencies.map(function (dependency) {
-            return paths[dependencies.indexOf(dependency)];
-          });
+        unusedPaths = unusedPaths.concat(paths.slice(dependencies.length));
 
-          unusedPaths = unusedPaths.concat(paths.slice(dependencies.length));
-
-          results.push({
-            moduleId: moduleId,
-            paths: paths.map(function (p) { return p.path; }),
-            unusedPaths: unusedPaths.map(function (p) { return p.path; }),
-            dependencies: dependencies,
-            unusedDependencies: unusedDependencies,
-            bodyWithComments: body,
-            bodyWithoutComments: source,
-            comments: comments
-          });
-        }
+        results.push({
+          moduleId: moduleId,
+          paths: paths.map(function (p) { return p.path; }),
+          unusedPaths: unusedPaths.map(function (p) { return p.path; }),
+          dependencies: dependencies,
+          unusedDependencies: unusedDependencies,
+          bodyWithComments: body,
+          bodyWithoutComments: source,
+          comments: comments
+        });
       }
     }
 
