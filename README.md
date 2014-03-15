@@ -113,6 +113,7 @@ Optimized `content` (original content without unused dependencies).
 This property is available when the value of option `removeUnusedDependencies` is true.
 
 ## Release History
+ * 2014-03-06   v0.1.4   Add the ability to parse empty modules.
  * 2014-03-06   v0.1.3   Detects paths without corresponding dependency as unused.
  * 2014-03-06   v0.1.2   Dependency quotes in `optimizedContent` will be same as the original source.
  * 2014-01-20   v0.1.1   `exceptsPaths` can also be defined before each module definition.
