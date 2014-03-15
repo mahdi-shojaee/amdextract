@@ -33,6 +33,7 @@
   },
   "homepage": "https://github.com/mehdishojaei/amdextract",
   "devDependencies": {
+    "mocha": "~1.18.0",
     "should": "~3.1.3"
   }
 }
