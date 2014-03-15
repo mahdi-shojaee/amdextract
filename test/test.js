@@ -3,7 +3,7 @@ var should = require('should');
 var fs = require('fs');
 
 function read(testName) {
-  return fs.readFileSync('fixtures/' + testName + '.js').toString();
+  return fs.readFileSync('test/fixtures/' + testName + '.js').toString();
 };
 
 function parse(testName) {
