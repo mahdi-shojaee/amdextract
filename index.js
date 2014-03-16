@@ -116,9 +116,9 @@ module.exports.parse = function (content, options) {
 
         unusedPaths = unusedDependencies.map(function (dependency) {
           return paths[dependencies.indexOf(dependency)];
+        }).concat(paths.slice(dependencies.length)).filter(function(p) {
+          return !isException(exceptsPaths, p.path);
         });
-
-        unusedPaths = unusedPaths.concat(paths.slice(dependencies.length));
 
         results.push({
           moduleId: moduleId,

@@ -1,7 +1,7 @@
 // General test for all cases.
 
 /* exceptsPaths: p3 */
-define('name', ["p1", "p2", "p3", "p4"], function (a, b, c) {
+define('name', ["p1", "p2", 'p3', "p4", "t5", 'm6', 'm7'], function (a, b, c) {
     /**
      * a.fetch() must not be encountered as code.
      */
