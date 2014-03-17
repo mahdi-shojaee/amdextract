@@ -1,5 +1,4 @@
-# amdextract
-[![Build Status](https://travis-ci.org/mehdishojaei/amdextract.png)](https://travis-ci.org/mehdishojaei/amdextract)
+# amdextract [![Build Status](https://travis-ci.org/mehdishojaei/amdextract.png)](https://travis-ci.org/mehdishojaei/amdextract)
 
 Extracts AMD modules, their parts and an optimized output without unused dependencies.
 
@@ -12,7 +11,7 @@ define("module1", ["view/a", "view/b"], function (a, b) {
 });
 
 define("module2", ["view/a", "view/b", "view/c"], function (a, b, c) {
-	b.fetch();
+	var t = b;
 });
 ```
 
@@ -42,11 +41,11 @@ Unused paths: view/a, view/c
 
 Optimized output:
 
-define(["view/a"], function (a) {
+define("module1", ["view/a"], function (a) {
 	var t = new a();
 });
 
-define(["view/b"], function (b) {
+define("module2", ["view/b"], function (b) {
 	var t = b;
 });
 ```
@@ -113,6 +112,7 @@ Optimized `content` (original content without unused dependencies).
 This property is available when the value of option `removeUnusedDependencies` is true.
 
 ## Release History
+ * 2014-03-17   v1.0.1   Update README.md.
  * 2014-03-16   v1.0.0   First release.
  * 2014-03-16   v0.1.6   Fix a bug related to unused paths.
  * 2014-03-15   v0.1.5   Add the ability to parse empty modules.
