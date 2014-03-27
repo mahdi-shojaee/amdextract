@@ -6,12 +6,12 @@ Extracts AMD modules, their parts and an optimized output without unused depende
 
 source.js
 ``` js
-define("module1", ["view/a", "view/b"], function (a, b) {
-	var t = new a();
+define('module1', ['p1', 'p2'], function (a, b) {
+	return a;
 });
 
-define("module2", ["view/a", "view/b", "view/c"], function (a, b, c) {
-	var t = b;
+define('module2', ['p1', 'p2', 'p3'], function (a, b, c) {
+	return b;
 });
 ```
 
@@ -33,20 +33,20 @@ console.log('\nOptimized output:');
 console.log(result.optimizedContent);
 ```
 
-coutput
+output
 ``` console
 2 modules detected.
-Unused paths: view/b
-Unused paths: view/a, view/c
+Unused paths: p2
+Unused paths: p1, p3
 
 Optimized output:
 
-define("module1", ["view/a"], function (a) {
-	var t = new a();
+define('module1', ['p1'], function (a) {
+	return a;
 });
 
-define("module2", ["view/b"], function (b) {
-	var t = b;
+define('module2', ['p2'], function (b) {
+	return b;
 });
 ```
 
@@ -74,13 +74,21 @@ An array of strings or RegExps that represent dependency paths that should not t
 
 NOTE: `exceptsPaths` can also be declared before each module definition as a comment of strings of module paths separated by commas. This only applies on the underlying module definition.
 
+example
 ``` js
-/* exceptsPaths: view/c */
-define(["view/a", "view/b", "view/c"], function (a, b, c) {
-	b.fetch();
+/* exceptsPaths: p3 */
+define(['p1', 'p2', 'p3'], function (a, b, c) {
+	return b;
 });
 ```
 
+output
+```
+/* exceptsPaths: p3 */
+define(['p2', 'p3'], function (b, c) {
+	return b;
+});
+```
 #### removeUnusedDependencies
 Type: Boolean
 Default value: false
