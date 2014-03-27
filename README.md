@@ -5,18 +5,18 @@ Extracts AMD modules, their parts and an optimized output without unused depende
 ## example
 
 source.js
-``` js
+```js
 define('module1', ['p1', 'p2'], function (a, b) {
 	return a;
 });
 
-define('module2', ['p1', 'p2', 'p3'], function (a, b, c) {
+define('module2', ['p1', 'p2', 'p3', 'p4'], function (a, b, c) {
 	return b;
 });
 ```
 
 example.js
-``` js
+```js
 var fs = require('fs');
 var amdextract = require('amdextract');
 
@@ -34,10 +34,10 @@ console.log(result.optimizedContent);
 ```
 
 output
-``` console
+```
 2 modules detected.
 Unused paths: p2
-Unused paths: p1, p3
+Unused paths: p1, p3, p4
 
 Optimized output:
 
@@ -74,16 +74,16 @@ An array of strings or RegExps that represent dependency paths that should not t
 
 NOTE: `exceptsPaths` can also be declared before each module definition as a comment of strings of module paths separated by commas. This only applies on the underlying module definition.
 
-example
-``` js
+source.js
+```js
 /* exceptsPaths: p3 */
 define(['p1', 'p2', 'p3'], function (a, b, c) {
 	return b;
 });
 ```
 
-output
-```
+optimized-source.js
+```js
 /* exceptsPaths: p3 */
 define(['p2', 'p3'], function (b, c) {
 	return b;
