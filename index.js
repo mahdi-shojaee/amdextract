@@ -78,7 +78,7 @@ module.exports.parse = function (content, options) {
         commentlessPathsStr, commentlessDependenciesStr,
         unusedDependencies = [],
         unusedPaths = [],
-        exceptsPaths = [],
+        exceptsPaths = options.exceptsPaths,
         excepts = options.excepts,
         body, // Module body with comments
         source, // Module body without comments
