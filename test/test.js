@@ -123,7 +123,6 @@ describe('amdextract', function() {
         ); });
       });
 
-
       describe('general test', function() {
         var output = parse('sample', { removeUnusedDependencies: true, exceptsPaths: ['t5', /^m/] });
         var result = output.results[0];

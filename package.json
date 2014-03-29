@@ -1,6 +1,6 @@
 {
   "name": "amdextract",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Extracts AMD modules and their parts.",
   "main": "index.js",
   "scripts": {

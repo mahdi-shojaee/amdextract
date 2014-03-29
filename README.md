@@ -120,4 +120,5 @@ Optimized `content` (original content without unused dependencies).
 This property is available when the value of option `removeUnusedDependencies` is true.
 
 ## Release History
+ * 2014-03-17   v1.0.3   Fix a bug when specifying exceptsPaths in options only.
  * 2014-03-17   v1.0.0   First release.
