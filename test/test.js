@@ -107,6 +107,23 @@ describe('amdextract', function() {
         ); });
       });
 
+      describe('when specifying exceptsPaths in options only', function() {
+        var output = amdextract.parse(
+          "define('name', ['p1', 'p2'], function(a) { return a; })",
+          { removeUnusedDependencies: true, exceptsPaths: ['p2'] }
+        );
+        var result = output.results[0];
+        it('.moduleId', function() { should(result.moduleId).equal('name'); });
+        it('.paths', function() { result.paths.should.be.eql(['p1', 'p2']); });
+        it('.dependencies', function() { result.dependencies.should.be.eql(['a']); });
+        it('.unusedPaths', function() { result.unusedPaths.should.be.eql([]); });
+        it('.unusedDependencies', function() { result.unusedDependencies.should.be.eql([]); });
+        it('.optimizedContent', function() { should(output.optimizedContent).be.equal(
+          "define('name', ['p1', 'p2'], function(a) { return a; })"
+        ); });
+      });
+
+
       describe('general test', function() {
         var output = parse('sample', { removeUnusedDependencies: true, exceptsPaths: ['t5', /^m/] });
         var result = output.results[0];
