@@ -109,15 +109,17 @@ module.exports.parse = function (content, options) {
         comments = rcResult.comments;
 
         unusedDependencies = dependencies.filter(function (dependency) {
+          var index = dependencies.indexOf(dependency);
           return !isException(excepts, dependency) &&
-                 !isException(exceptsPaths, paths[dependencies.indexOf(dependency)].path) &&
+                 (index >= paths.length || !isException(exceptsPaths, paths[index].path)) &&
                  !findUseage(dependency, source);
         });
 
         unusedPaths = unusedDependencies.map(function (dependency) {
-          return paths[dependencies.indexOf(dependency)];
+          var index = dependencies.indexOf(dependency);
+          return index < paths.length ? paths[index] : void 0;
         }).concat(paths.slice(dependencies.length)).filter(function(p) {
-          return !isException(exceptsPaths, p.path);
+          return p && !isException(exceptsPaths, p.path);
         });
 
         results.push({
