@@ -95,6 +95,28 @@ Default value: false
 
 Removes unused dependencies from `content` and returns optimized content as `optimizedContent` property of result.
 
+#### separator
+Type: String
+Default value: `' '`
+
+separator to use when creating arrays of paths and modules in `define` statements in `optimizedContent` property of result. Example: 
+
+Default (`' '`)
+```js
+define(['p1', 'p2', 'p3'], function (a, b, c) {
+```
+
+New line (`'\n'`)
+```js
+define(['p1',
+'p2',
+'p3'], function (a,
+b,
+c) {
+```
+
+NOTE: Do not include the comma in the `separator` string.
+
 ### returns
 
 Returns an object with the following properties:
