@@ -69,7 +69,7 @@ module.exports.parse = function (content, options) {
   options = options || {};
   options.excepts = Array.isArray(options.excepts) ? options.excepts : [];
   options.exceptsPaths = Array.isArray(options.exceptsPaths) ? options.exceptsPaths : [];
-  options.seperator = options.seperator || ' ';
+  options.separator = options.separator || ' ';
 
   var results = [];
 
@@ -137,7 +137,7 @@ module.exports.parse = function (content, options) {
     }
 
     if (options.removeUnusedDependencies) {
-      var seperator = ',' + options.seperator;
+      var separator = ',' + options.separator;
       var usedDependencies = dependencies.filter(function (dependency) {
         return unusedDependencies.indexOf(dependency) < 0;
       });
@@ -146,8 +146,8 @@ module.exports.parse = function (content, options) {
         return unusedPaths.indexOf(dependency) < 0;
       });
 
-      match = match.replace(pathsStr, usedPaths.map(function (p) { return p.quote + p.path + p.quote; }).join(seperator))
-              .replace(dependenciesStr, usedDependencies.join(seperator));
+      match = match.replace(pathsStr, usedPaths.map(function (p) { return p.quote + p.path + p.quote; }).join(separator))
+              .replace(dependenciesStr, usedDependencies.join(separator));
     }
 
     return match;

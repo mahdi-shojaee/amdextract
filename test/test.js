@@ -151,8 +151,8 @@ describe('amdextract', function() {
         it('.optimizedContent', function() { should(output.optimizedContent).be.equal(optimizedContent); });
       });
 
-      describe('when specifying newline as seperator', function() {
-        var output = parse('sample', { removeUnusedDependencies: true, exceptsPaths: ['t5', /^m/], seperator: '\n' });
+      describe('when specifying newline as separator', function() {
+        var output = parse('sample', { removeUnusedDependencies: true, exceptsPaths: ['t5', /^m/], separator: '\n' });
         var result = output.results[0];
         var optimizedContent = read('sample-optimized-newline');
         it('.moduleId', function() { should(result.moduleId).equal('name'); });
