@@ -120,6 +120,7 @@ Optimized `content` (original content without unused dependencies).
 This property is available when the value of option `removeUnusedDependencies` is true.
 
 ## Release History
+ * 2014-04-19   v1.1.0   Keeps the original separators of paths and dependencies.
  * 2014-04-09   v1.0.4   Fix a bug when dependencies length is grater than paths length.
  * 2014-03-29   v1.0.3   Fix a bug when specifying exceptsPaths in options only.
  * 2014-03-17   v1.0.0   First release.

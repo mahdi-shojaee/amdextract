@@ -10,7 +10,7 @@
 
 var defineRegExp = /(?:\/[\*\/]\s*exceptsPaths\s*\:\s*([^]+?)\s*(?:(?:\*\/)|(?:[\r\n]+)))?\s*define\s*\(\s*(?:['"](.*)['"]\s*,\s*)?(?:\[\s*([^]*?)\s*\]\s*,)?\s*function\s*\(\s*([^]*?)\s*\)\s*\{/gm,
 commentRegExp = /(?:\/\*[^]*?\*\/)|(?:\/\/[^]*?$)/gm,
-commaRegExp = /\s*,\s*/,
+commaRegExp = /(\s*),(\s*)/,
 
 getModuleBody = function (text) {
   for (var i = 0, counter = 0, len = text.length; i < len; ++i) {
@@ -63,6 +63,23 @@ isException = function (exceptions, dependency) {
       return exception.test(dependency);
     }
   });
+},
+
+splitByComma = function (str) {
+  var result = [],
+      parts = str.split(commaRegExp),
+      tokensLength = (parts.length + 2) / 3;
+
+  for (var i = 0; i < tokensLength; i++) {
+    var index = 3 * i;
+    result.push({
+      before: parts[index - 1],
+      token: parts[index],
+      after: parts[index + 1]
+    });
+  }
+
+  return result;
 };
 
 module.exports.parse = function (content, options) {
@@ -85,20 +102,22 @@ module.exports.parse = function (content, options) {
         comments; // Array of inline and block comments
 
     if (exceptsPathsStr) {
-      exceptsPaths = options.exceptsPaths.concat(exceptsPathsStr.split(commaRegExp));
+      exceptsPaths = options.exceptsPaths.concat(splitByComma(exceptsPathsStr).map(function (p) { return p.token; }));
     }
 
     commentlessPathsStr = removeComments(pathsStr).source;
     commentlessDependenciesStr = removeComments(dependenciesStr).source;
 
-    paths = commentlessPathsStr ? commentlessPathsStr.split(commaRegExp).map(function (p) {
+    paths = commentlessPathsStr ? splitByComma(commentlessPathsStr).map(function (p) {
       return {
-        path: p.substr(1, p.length - 2),
-        quote: p[0]
+        path: p.token.substr(1, p.token.length - 2),
+        quote: p.token[0],
+        before: p.before,
+        after: p.after
       };
     }) : [];
 
-    dependencies = commentlessDependenciesStr ? commentlessDependenciesStr.split(commaRegExp) : [];
+    dependencies = commentlessDependenciesStr ? splitByComma(commentlessDependenciesStr) : [];
 
     if (text) {
       body = getModuleBody(text);
@@ -110,9 +129,9 @@ module.exports.parse = function (content, options) {
 
         unusedDependencies = dependencies.filter(function (dependency) {
           var index = dependencies.indexOf(dependency);
-          return !isException(excepts, dependency) &&
+          return !isException(excepts, dependency.token) &&
                  (index >= paths.length || !isException(exceptsPaths, paths[index].path)) &&
-                 !findUseage(dependency, source);
+                 !findUseage(dependency.token, source);
         });
 
         unusedPaths = unusedDependencies.map(function (dependency) {
@@ -126,8 +145,8 @@ module.exports.parse = function (content, options) {
           moduleId: moduleId,
           paths: paths.map(function (p) { return p.path; }),
           unusedPaths: unusedPaths.map(function (p) { return p.path; }),
-          dependencies: dependencies,
-          unusedDependencies: unusedDependencies,
+          dependencies: dependencies.map(function (d) { return d.token; }),
+          unusedDependencies: unusedDependencies.map(function (d) { return d.token; }),
           bodyWithComments: body,
           bodyWithoutComments: source,
           comments: comments
@@ -144,8 +163,16 @@ module.exports.parse = function (content, options) {
         return unusedPaths.indexOf(dependency) < 0;
       });
 
-      match = match.replace(pathsStr, usedPaths.map(function (p) { return p.quote + p.path + p.quote; }).join(', '))
-              .replace(dependenciesStr, usedDependencies.join(', '));
+      match = match.replace(pathsStr, usedPaths.map(function (p, index, array) {
+          var before = (index === 0 || !p.before) ? '' : p.before;
+          var after = (index === array.length || !p.after) ? '' : p.after;
+          return before + p.quote + p.path + p.quote + after;
+        }).join(','))
+        .replace(dependenciesStr, usedDependencies.map(function (d, index, array) {
+          var before = (index === 0 || !d.before) ? '' : d.before;
+          var after = (index === array.length || !d.after) ? '' : d.after;
+          return before + d.token + after;
+        }).join(','));
     }
 
     return match;
