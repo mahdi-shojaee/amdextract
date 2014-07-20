@@ -15,4 +15,12 @@ define('name', ["p2"
      */
     b.fetch();
     // c.fetch() must not be encountered as code.
+
+    function test(a) {
+      return a;
+    }
+
+    var result = (function(a) {
+      return a;
+    })(b);
 });

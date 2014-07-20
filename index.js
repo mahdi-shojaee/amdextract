@@ -8,11 +8,60 @@
 
 'use strict';
 
-var defineRegExp = /(?:\/[\*\/]\s*exceptsPaths\s*\:\s*([^]+?)\s*(?:(?:\*\/)|(?:[\r\n]+)))?\s*define\s*\(\s*(?:['"](.*)['"]\s*,\s*)?(?:\[\s*([^]*?)\s*\]\s*,)?\s*function\s*\(\s*([^]*?)\s*\)\s*\{/gm,
-commentRegExp = /(?:\/\*[^]*?\*\/)|(?:\/\/[^]*?$)/gm,
-commaRegExp = /(\s*),(\s*)/,
+var esprima = require('esprima');
 
-getModuleBody = function (text) {
+
+var defineRegExp = /(?:\/[\*\/]\s*exceptsPaths\s*\:\s*([^]+?)\s*(?:(?:\*\/)|(?:[\r\n]+)))?\s*define\s*\(\s*(?:['"](.*)['"]\s*,\s*)?(?:\[\s*([^]*?)\s*\]\s*,)?\s*function\s*\(\s*([^]*?)\s*\)\s*\{/gm;
+var commentRegExp = /(?:\/\*[^]*?\*\/)|(?:\/\/[^]*?$)/gm;
+var commaRegExp = /(\s*),(\s*)/;
+
+var toString = Object.prototype.toString;
+
+function traverse(object, visitor) {
+  var key, child;
+
+  if (visitor(object)) {
+    return true;
+  }
+
+  if (object.type === 'FunctionExpression' || object.type === 'FunctionDeclaration') {
+    var params = object.params;
+
+    if (traverse(object.body, function(obj) {
+      if (visitor(obj)) {
+        for (var i = 0, length = params.length; i < length; i++) {
+          var param = params[i];
+          if (param.type === obj.type && param.name === obj.name) {
+            break;
+          }
+        }
+
+        if (i === length) {
+          return true;
+        }
+      }
+    })) {
+      return true;
+    }
+  } else {
+    for (key in object) {
+      if (object.hasOwnProperty(key)) {
+        child = object[key];
+        if (typeof child === 'object' && child !== null) {
+          if (key !== 'property' && key !== 'id' && key !== 'params') {
+            if (traverse(child, visitor)) {
+              return true;
+            };
+          }
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+function getModuleBody(text) {
   for (var i = 0, counter = 0, len = text.length; i < len; ++i) {
     if (text[i] === '{') {
       ++counter;
@@ -24,9 +73,9 @@ getModuleBody = function (text) {
     }
   }
   return text.substring(1, i);
-},
+}
 
-removeComments = function (text) {
+function removeComments(text) {
   var comments = [];
   if (text) {
     text = text.replace(commentRegExp, function (match) {
@@ -35,27 +84,27 @@ removeComments = function (text) {
     });
   }
   return { source: text, comments: comments };
-},
+}
 
-findUseage = function (variable, text) {
-  variable = variable.replace('$', '\\$');
-  var invalidChars = '(?:[^A-Za-z0-9_\\$"\']|^|$)',
-    pattern = invalidChars + variable + invalidChars,
-    regExp = new RegExp(pattern);
-  return regExp.test(text);
-},
+function findUseage(variable, text) {
+  var parsedCode = esprima.parse('function wrapper(){' + text + '}').body[0].body;
 
-toString = Object.prototype.toString,
+  return traverse(parsedCode, function(object) {
+    if (object.type === 'Identifier' && object.name === variable) {
+      return true;
+    }
+  });
+}
 
-isString = function (obj) {
+function isString(obj) {
   return toString.call(obj) === "[object String]";
-},
+}
 
-isRegExp = function (obj) {
+function isRegExp(obj) {
   return toString.call(obj) === "[object RegExp]";
-},
+}
 
-isException = function (exceptions, dependency) {
+function isException(exceptions, dependency) {
   return exceptions.some(function (exception) {
     if (isString(exception)) {
       return exception === dependency;
@@ -63,9 +112,9 @@ isException = function (exceptions, dependency) {
       return exception.test(dependency);
     }
   });
-},
+}
 
-splitByComma = function (str) {
+function splitByComma(str) {
   var result = [],
       parts = str.split(commaRegExp),
       tokensLength = (parts.length + 2) / 3;
@@ -80,7 +129,7 @@ splitByComma = function (str) {
   }
 
   return result;
-};
+}
 
 module.exports.parse = function (content, options) {
   options = options || {};
