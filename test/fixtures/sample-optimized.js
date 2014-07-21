@@ -23,4 +23,6 @@ define('name', ["p2"
     var result = (function(a) {
       return a;
     })(b);
+
+    var regEx = /\/download\//i;
 });

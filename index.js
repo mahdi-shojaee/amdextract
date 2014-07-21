@@ -12,7 +12,7 @@ var esprima = require('esprima');
 
 
 var defineRegExp = /(?:\/[\*\/]\s*exceptsPaths\s*\:\s*([^]+?)\s*(?:(?:\*\/)|(?:[\r\n]+)))?\s*define\s*\(\s*(?:['"](.*)['"]\s*,\s*)?(?:\[\s*([^]*?)\s*\]\s*,)?\s*function\s*\(\s*([^]*?)\s*\)\s*\{/gm;
-var commentRegExp = /(?:\/\*[^]*?\*\/)|(?:\/\/[^]*?$)/gm;
+var commentRegExp = /(?:[^\\](\/\*[^]*?\*\/))|(?:[^\\](\/\/.*?)$)/gm;
 var commaRegExp = /(\s*),(\s*)/;
 
 var toString = Object.prototype.toString;
@@ -78,8 +78,8 @@ function getModuleBody(text) {
 function removeComments(text) {
   var comments = [];
   if (text) {
-    text = text.replace(commentRegExp, function (match) {
-      comments.push(match);
+    text = text.replace(commentRegExp, function (match, comment) {
+      comments.push(comment);
       return '';
     });
   }
@@ -139,16 +139,19 @@ module.exports.parse = function (content, options) {
   var results = [];
 
   var output = content.replace(defineRegExp, function (match, exceptsPathsStr, moduleId, pathsStr, dependenciesStr, offset) {
-    var text = content.substr(offset + match.length - 1), // Unprocessed
-        paths, dependencies,
-        commentlessPathsStr, commentlessDependenciesStr,
-        unusedDependencies = [],
-        unusedPaths = [],
-        exceptsPaths = options.exceptsPaths,
-        excepts = options.excepts,
-        body, // Module body with comments
-        source, // Module body without comments
-        comments; // Array of inline and block comments
+    var
+      // Unprocessed
+      text = content.substr(offset + match.length - 1),
+
+      // Module body without comments
+      source,
+
+      paths, dependencies,
+      commentlessPathsStr, commentlessDependenciesStr,
+      unusedDependencies = [],
+      unusedPaths = [],
+      exceptsPaths = options.exceptsPaths,
+      excepts = options.excepts;
 
     if (exceptsPathsStr) {
       exceptsPaths = options.exceptsPaths.concat(splitByComma(exceptsPathsStr).map(function (p) { return p.token; }));
@@ -169,12 +172,10 @@ module.exports.parse = function (content, options) {
     dependencies = commentlessDependenciesStr ? splitByComma(commentlessDependenciesStr) : [];
 
     if (text) {
-      body = getModuleBody(text);
-      var rcResult = removeComments(body);
+      var rcResult = removeComments(text);
 
       if (rcResult) {
-        source = rcResult.source;
-        comments = rcResult.comments;
+        source = getModuleBody(rcResult.source);
 
         unusedDependencies = dependencies.filter(function (dependency) {
           var index = dependencies.indexOf(dependency);
@@ -195,10 +196,7 @@ module.exports.parse = function (content, options) {
           paths: paths.map(function (p) { return p.path; }),
           unusedPaths: unusedPaths.map(function (p) { return p.path; }),
           dependencies: dependencies.map(function (d) { return d.token; }),
-          unusedDependencies: unusedDependencies.map(function (d) { return d.token; }),
-          bodyWithComments: body,
-          bodyWithoutComments: source,
-          comments: comments
+          unusedDependencies: unusedDependencies.map(function (d) { return d.token; })
         });
       }
     }
