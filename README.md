@@ -110,9 +110,6 @@ An array of hash objects witch have this properties for each AMD module detected
 - `dependencies`
 - `unusedPaths`
 - `unusedDependencies`
-- `bodyWithComments`
-- `bodyWithoutComments`
-- `comments`
 
 #### optimizedContent
 Type: String
