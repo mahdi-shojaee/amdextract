@@ -12,7 +12,7 @@ var esprima = require('esprima');
 
 
 var defineRegExp = /(?:\/[\*\/]\s*exceptsPaths\s*\:\s*([^]+?)\s*(?:(?:\*\/)|(?:[\r\n]+)))?\s*define\s*\(\s*(?:['"](.*)['"]\s*,\s*)?(?:\[\s*([^]*?)\s*\]\s*,)?\s*function\s*\(\s*([^]*?)\s*\)\s*\{/gm;
-var commentRegExp = /(?:[^\\](\/\*[^]*?\*\/))|(?:[^\\](\/\/.*?)$)/gm;
+var commentRegExp = /(?:([^\\])(\/\*[^]*?\*\/))|(?:([^\\])(\/\/.*?)$)/gm;
 var commaRegExp = /(\s*),(\s*)/;
 
 var toString = Object.prototype.toString;
@@ -78,9 +78,11 @@ function getModuleBody(text) {
 function removeComments(text) {
   var comments = [];
   if (text) {
-    text = text.replace(commentRegExp, function (match, comment) {
+    text = text.replace(commentRegExp, function (match, chr1, comment1, chr2, comment2) {
+      var chr = chr1 || chr2;
+      var comment = comment1 || comment2;
       comments.push(comment);
-      return '';
+      return chr;
     });
   }
   return { source: text, comments: comments };

@@ -118,6 +118,7 @@ Optimized `content` (original content without unused dependencies).
 This property is available when the value of option `removeUnusedDependencies` is true.
 
 ## Release History
+ * 2014-07-21   v2.0.3   Fix an issue related to comment detection.
  * 2014-07-21   v2.0.2   Fix an issue related to RegExp literals.
  * 2014-07-20   v2.0.0   Uses AST to find out unused dependencies.
  * 2014-04-19   v1.1.0   Keeps the original separators of paths and dependencies.
