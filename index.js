@@ -44,21 +44,18 @@ function traverse(object, visitor) {
 function findUseage(variable, parsedCode) {
   return traverse(parsedCode, function(object) {
     if (object.type === 'FunctionExpression' || object.type === 'FunctionDeclaration') {
-      var params = object.params;
-      var obj = findUseage(variable, object.body);
+      var params = object.params, obj;
 
-      if (obj) {
-        if (obj.type === 'Identifier' && obj.name === variable) {
-          for (var i = 0, length = params.length; i < length; i++) {
-            var param = params[i];
-            if (param.type === obj.type && param.name === obj.name) {
-              break;
-            }
+      if (obj = findUseage(variable, object.body)) {
+        for (var i = 0, length = params.length; i < length; i++) {
+          var param = params[i];
+          if (param.type === obj.type && param.name === obj.name) {
+            break;
           }
+        }
 
-          if (i === length) {
-            return obj;
-          }
+        if (i === length) {
+          return obj;
         }
       }
 
