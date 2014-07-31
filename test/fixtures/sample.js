@@ -3,27 +3,47 @@
 /* exceptsPaths: p3 */
 define('name', ["p1",
   "p2"
-  , 'p3',
-    "p4",  "t5"  , 'm6'
+  , 'p3', 'p4',
+    "p5",  "t1"  , 'm1'
 
   ,
 
 
 
-  'm7'], function (a , b
-    ,  c) {
+  'm2'], function (a , b
+    ,  c, d) {
     /**
      * a.fetch() must not be encountered as code.
      */
-    b.fetch();
+
     // c.fetch() must not be encountered as code.
 
-    function test(a) {
+    b.a();
+
+    function test1(a) {
       return a;
+    }
+
+    function test2() {
+      function test3(a) {
+        return a;
+      }
+    }
+
+    function test4() {
+      function test5() {
+        return d;
+      }
     }
 
     var result = (function(a) {
       return a;
+    })(b);
+
+    var result = (function(a) {
+      return (function(a) {
+        return a;
+      })(a);
     })(b);
 
     var regEx = /\/download\//i;

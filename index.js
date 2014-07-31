@@ -22,7 +22,7 @@ function traverse(object, visitor) {
 
   var result = visitor(object);
 
-  if (typeof result === 'boolean') {
+  if (result || result === false) {
     return result;
   }
 
@@ -31,9 +31,9 @@ function traverse(object, visitor) {
       child = object[key];
       if (typeof child === 'object' && child !== null) {
         child.key = key;
-        if (traverse(child, visitor)) {
-          return true;
-        };
+        if (result = traverse(child, visitor)) {
+          return result;
+        }
       }
     }
   }
@@ -45,8 +45,9 @@ function findUseage(variable, parsedCode) {
   return traverse(parsedCode, function(object) {
     if (object.type === 'FunctionExpression' || object.type === 'FunctionDeclaration') {
       var params = object.params;
+      var obj = findUseage(variable, object.body);
 
-      if (traverse(object.body, function(obj) {
+      if (obj) {
         if (obj.type === 'Identifier' && obj.name === variable) {
           for (var i = 0, length = params.length; i < length; i++) {
             var param = params[i];
@@ -56,17 +57,15 @@ function findUseage(variable, parsedCode) {
           }
 
           if (i === length) {
-            return true;
+            return obj;
           }
         }
-      })) {
-        return true;
       }
 
       return false;
     } else if (object.type === 'Identifier' && object.name === variable &&
-        object.key !== 'property' && object.key !== 'id' && object.key !== 'params') {
-      return true;
+        object.key !== 'property' && object.key !== 'id') {
+      return object;
     }
   });
 }
