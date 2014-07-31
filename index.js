@@ -20,15 +20,33 @@ var toString = Object.prototype.toString;
 function traverse(object, visitor) {
   var key, child;
 
-  if (visitor(object)) {
-    return true;
+  var result = visitor(object);
+
+  if (result || result === false) {
+    return result;
   }
 
-  if (object.type === 'FunctionExpression' || object.type === 'FunctionDeclaration') {
-    var params = object.params;
+  for (key in object) {
+    if (object.hasOwnProperty(key)) {
+      child = object[key];
+      if (typeof child === 'object' && child !== null) {
+        child.key = key;
+        if (result = traverse(child, visitor)) {
+          return result;
+        }
+      }
+    }
+  }
 
-    if (traverse(object.body, function(obj) {
-      if (visitor(obj)) {
+  return false;
+}
+
+function findUseage(variable, parsedCode) {
+  return traverse(parsedCode, function(object) {
+    if (object.type === 'FunctionExpression' || object.type === 'FunctionDeclaration') {
+      var params = object.params, obj;
+
+      if (obj = findUseage(variable, object.body)) {
         for (var i = 0, length = params.length; i < length; i++) {
           var param = params[i];
           if (param.type === obj.type && param.name === obj.name) {
@@ -37,28 +55,16 @@ function traverse(object, visitor) {
         }
 
         if (i === length) {
-          return true;
+          return obj;
         }
       }
-    })) {
-      return true;
-    }
-  } else {
-    for (key in object) {
-      if (object.hasOwnProperty(key)) {
-        child = object[key];
-        if (typeof child === 'object' && child !== null) {
-          if (key !== 'property' && key !== 'id' && key !== 'params') {
-            if (traverse(child, visitor)) {
-              return true;
-            };
-          }
-        }
-      }
-    }
-  }
 
-  return false;
+      return false;
+    } else if (object.type === 'Identifier' && object.name === variable &&
+        object.key !== 'property' && object.key !== 'id') {
+      return object;
+    }
+  });
 }
 
 function getModuleBody(text) {
@@ -86,16 +92,6 @@ function removeComments(text) {
     });
   }
   return { source: text, comments: comments };
-}
-
-function findUseage(variable, text) {
-  var parsedCode = esprima.parse('function wrapper(){' + text + '}').body[0].body;
-
-  return traverse(parsedCode, function(object) {
-    if (object.type === 'Identifier' && object.name === variable) {
-      return true;
-    }
-  });
 }
 
 function isString(obj) {
@@ -178,12 +174,13 @@ module.exports.parse = function (content, options) {
 
       if (rcResult) {
         source = getModuleBody(rcResult.source);
+        var parsedCode = esprima.parse('function wrapper(){' + source + '}').body[0].body;
 
         unusedDependencies = dependencies.filter(function (dependency) {
           var index = dependencies.indexOf(dependency);
           return !isException(excepts, dependency.token) &&
                  (index >= paths.length || !isException(exceptsPaths, paths[index].path)) &&
-                 !findUseage(dependency.token, source);
+                 !findUseage(dependency.token, parsedCode);
         });
 
         unusedPaths = unusedDependencies.map(function (dependency) {

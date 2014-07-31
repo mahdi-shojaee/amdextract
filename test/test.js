@@ -140,13 +140,13 @@ describe('amdextract', function() {
       });
 
       describe('general test', function() {
-        var output = parse('sample', { removeUnusedDependencies: true, exceptsPaths: ['t5', /^m/] });
+        var output = parse('sample', { removeUnusedDependencies: true, exceptsPaths: ['t1', /^m/] });
         var result = output.results[0];
         var optimizedContent = read('sample-optimized');
         it('.moduleId', function() { should(result.moduleId).equal('name'); });
-        it('.paths', function() { result.paths.should.be.eql(['p1', 'p2', 'p3', 'p4', 't5', 'm6', 'm7']); });
-        it('.dependencies', function() { result.dependencies.should.be.eql(['a', 'b', 'c']); });
-        it('.unusedPaths', function() { result.unusedPaths.should.be.eql(['p1', 'p4']); });
+        it('.paths', function() { result.paths.should.be.eql(['p1', 'p2', 'p3', 'p4', 'p5', 't1', 'm1', 'm2']); });
+        it('.dependencies', function() { result.dependencies.should.be.eql(['a', 'b', 'c', 'd']); });
+        it('.unusedPaths', function() { result.unusedPaths.should.be.eql(['p1', 'p5']); });
         it('.unusedDependencies', function() { result.unusedDependencies.should.be.eql(['a']); });
         it('.optimizedContent', function() { should(output.optimizedContent).be.equal(optimizedContent); });
       });
