@@ -20,45 +20,55 @@ var toString = Object.prototype.toString;
 function traverse(object, visitor) {
   var key, child;
 
-  if (visitor(object)) {
-    return true;
+  var result = visitor(object);
+
+  if (typeof result === 'boolean') {
+    return result;
   }
 
-  if (object.type === 'FunctionExpression' || object.type === 'FunctionDeclaration') {
-    var params = object.params;
-
-    if (traverse(object.body, function(obj) {
-      if (visitor(obj)) {
-        for (var i = 0, length = params.length; i < length; i++) {
-          var param = params[i];
-          if (param.type === obj.type && param.name === obj.name) {
-            break;
-          }
-        }
-
-        if (i === length) {
+  for (key in object) {
+    if (object.hasOwnProperty(key)) {
+      child = object[key];
+      if (typeof child === 'object' && child !== null) {
+        child.key = key;
+        if (traverse(child, visitor)) {
           return true;
-        }
-      }
-    })) {
-      return true;
-    }
-  } else {
-    for (key in object) {
-      if (object.hasOwnProperty(key)) {
-        child = object[key];
-        if (typeof child === 'object' && child !== null) {
-          if (key !== 'property' && key !== 'id' && key !== 'params') {
-            if (traverse(child, visitor)) {
-              return true;
-            };
-          }
-        }
+        };
       }
     }
   }
 
   return false;
+}
+
+function findUseage(variable, parsedCode) {
+  return traverse(parsedCode, function(object) {
+    if (object.type === 'FunctionExpression' || object.type === 'FunctionDeclaration') {
+      var params = object.params;
+
+      if (traverse(object.body, function(obj) {
+        if (obj.type === 'Identifier' && obj.name === variable) {
+          for (var i = 0, length = params.length; i < length; i++) {
+            var param = params[i];
+            if (param.type === obj.type && param.name === obj.name) {
+              break;
+            }
+          }
+
+          if (i === length) {
+            return true;
+          }
+        }
+      })) {
+        return true;
+      }
+
+      return false;
+    } else if (object.type === 'Identifier' && object.name === variable &&
+        object.key !== 'property' && object.key !== 'id' && object.key !== 'params') {
+      return true;
+    }
+  });
 }
 
 function getModuleBody(text) {
@@ -84,16 +94,6 @@ function removeComments(text) {
     });
   }
   return { source: text, comments: comments };
-}
-
-function findUseage(variable, text) {
-  var parsedCode = esprima.parse('function wrapper(){' + text + '}').body[0].body;
-
-  return traverse(parsedCode, function(object) {
-    if (object.type === 'Identifier' && object.name === variable) {
-      return true;
-    }
-  });
 }
 
 function isString(obj) {
@@ -176,12 +176,13 @@ module.exports.parse = function (content, options) {
 
       if (rcResult) {
         source = getModuleBody(rcResult.source);
+        var parsedCode = esprima.parse('function wrapper(){' + source + '}').body[0].body;
 
         unusedDependencies = dependencies.filter(function (dependency) {
           var index = dependencies.indexOf(dependency);
           return !isException(excepts, dependency.token) &&
                  (index >= paths.length || !isException(exceptsPaths, paths[index].path)) &&
-                 !findUseage(dependency.token, source);
+                 !findUseage(dependency.token, parsedCode);
         });
 
         unusedPaths = unusedDependencies.map(function (dependency) {
