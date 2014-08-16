@@ -1,7 +1,7 @@
 {
   "name": "amdextract",
   "version": "2.1.0",
-  "description": "Extracts AMD modules, their parts and an optimized output without unused dependencies. (Uses AST to find out unused dependencies)",
+  "description": "Use AST to extract AMD modules, their parts and an optimized output without unused dependencies.",
   "main": "index.js",
   "scripts": {
     "test": "mocha"
