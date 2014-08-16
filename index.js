@@ -8,19 +8,15 @@
 
 'use strict';
 
-var esprima = require('esprima');
+var esprima = require('esprima'),
+    estraverse = require('estraverse');
 
-
-var defineRegExp = /(?:\/[\*\/]\s*exceptsPaths\s*\:\s*([^]+?)\s*(?:(?:\*\/)|(?:[\r\n]+)))?\s*define\s*\(\s*(?:['"](.*)['"]\s*,\s*)?(?:\[\s*([^]*?)\s*\]\s*,)?\s*function\s*\(\s*([^]*?)\s*\)\s*\{/gm;
-var commentRegExp = /(?:([^\\])(\/\*[^]*?\*\/))|(?:([^\\])(\/\/.*?)$)/gm;
-var commaRegExp = /(\s*),(\s*)/;
-
-var toString = Object.prototype.toString;
+var toString = Object.prototype.toString,
+    ArrayProto = Array.prototype;
 
 function traverse(object, visitor) {
-  var key, child;
-
-  var result = visitor(object);
+  var key, child,
+      result = visitor(object);
 
   if (result || result === false) {
     return result;
@@ -41,6 +37,65 @@ function traverse(object, visitor) {
   return false;
 }
 
+function getModules(parsedCode) {
+  var modules = [],
+      comments = parsedCode.comments,
+      tokens = parsedCode.tokens;
+
+  traverse(parsedCode, function(object) {
+    if (object.type === 'ExpressionStatement') {
+      var expression = object.expression;
+
+      if (expression.type === 'CallExpression' && expression.callee &&
+          expression.callee.type === 'Identifier' && expression.callee.name === 'define') {
+        expression.callee = estraverse.attachComments(expression.callee, comments, tokens);
+
+        var module = {},
+          leadingComments = expression.callee.leadingComments,
+          exceptsPaths = [],
+          id, paths, pathsIndex, callback, callbackIndex;
+
+        if (leadingComments) {
+          leadingComments.forEach(function(leadingComment) {
+            var matches = /^\s*exceptsPaths\s*:\s*(\w+(?:\s*,\s*\w+)*)\s*$/m.exec(leadingComment.value);
+
+            if (matches) {
+              Array.prototype.push.apply(exceptsPaths, matches[1].split(/\s*,\s*/));
+            }
+          });
+        }
+
+        module.exceptsPaths = exceptsPaths;
+
+        id = expression.arguments[0];
+
+        if (id && id.type === 'Literal') {
+          module.id = id;
+        }
+
+        pathsIndex = module.id ? 1 : 0;
+        paths = expression.arguments[pathsIndex];
+
+        if (paths && paths.type === 'ArrayExpression') {
+          module.paths = paths.elements;
+        }
+
+        callbackIndex = pathsIndex + 1;
+        callback = expression.arguments[callbackIndex];
+
+        if (callback && callback.type === 'FunctionExpression') {
+          module.dependencies = callback.params;
+          module.body = callback.body;
+        }
+
+        modules.push(module);
+      }
+    }
+  });
+
+  return modules;
+}
+
 function findUseage(variable, parsedCode) {
   return traverse(parsedCode, function(object) {
     if (object.type === 'FunctionExpression' || object.type === 'FunctionDeclaration') {
@@ -59,6 +114,7 @@ function findUseage(variable, parsedCode) {
         }
       }
 
+      // Do not traverse function body.
       return false;
     } else if (object.type === 'Identifier' && object.name === variable &&
         object.key !== 'property' && object.key !== 'id') {
@@ -67,31 +123,48 @@ function findUseage(variable, parsedCode) {
   });
 }
 
-function getModuleBody(text) {
-  for (var i = 0, counter = 0, len = text.length; i < len; ++i) {
-    if (text[i] === '{') {
-      ++counter;
-    } else if (text[i] === '}') {
-      --counter;
-    }
-    if (!counter) {
-      break;
+function extendRange(range, source) {
+  var regEx = /[\s,]/,
+      start = range[0] - 1,
+      end = range[1],
+      commaVisited = false;
+
+  for (var char = source[start]; regEx.test(char); char = source[--start]) {
+    if (char === ',') {
+      commaVisited = true;
     }
   }
-  return text.substring(1, i);
+
+  if (!commaVisited) {
+    for (var char = source[end]; regEx.test(char); char = source[++end])
+      ;
+  }
+
+  return [start + 1, end];
 }
 
-function removeComments(text) {
-  var comments = [];
-  if (text) {
-    text = text.replace(commentRegExp, function (match, chr1, comment1, chr2, comment2) {
-      var chr = chr1 || chr2;
-      var comment = comment1 || comment2;
-      comments.push(comment);
-      return chr;
-    });
-  }
-  return { source: text, comments: comments };
+function optimizeContent(content, rangesToRemove) {
+  var output = '',
+      start = 0;
+
+  rangesToRemove.forEach(function(range) {
+    range = extendRange(range, content);
+
+    if (range[0] > start) {
+      var tmp = content.substring(start, range[0]);
+
+      if (/[[(]/.test(output[output.length - 1])) {
+        tmp = tmp.replace(/^[,\s]*/, '');
+      }
+
+      output += tmp;
+    }
+
+    start = range[1];
+  });
+
+  output += content.substring(start);
+  return output;
 }
 
 function isString(obj) {
@@ -102,31 +175,14 @@ function isRegExp(obj) {
   return toString.call(obj) === "[object RegExp]";
 }
 
-function isException(exceptions, dependency) {
+function isException(exceptions, item) {
   return exceptions.some(function (exception) {
     if (isString(exception)) {
-      return exception === dependency;
+      return exception === item;
     } else if (isRegExp(exception)) {
-      return exception.test(dependency);
+      return exception.test(item);
     }
   });
-}
-
-function splitByComma(str) {
-  var result = [],
-      parts = str.split(commaRegExp),
-      tokensLength = (parts.length + 2) / 3;
-
-  for (var i = 0; i < tokensLength; i++) {
-    var index = 3 * i;
-    result.push({
-      before: parts[index - 1],
-      token: parts[index],
-      after: parts[index + 1]
-    });
-  }
-
-  return result;
 }
 
 module.exports.parse = function (content, options) {
@@ -134,102 +190,49 @@ module.exports.parse = function (content, options) {
   options.excepts = Array.isArray(options.excepts) ? options.excepts : [];
   options.exceptsPaths = Array.isArray(options.exceptsPaths) ? options.exceptsPaths : [];
 
-  var results = [];
+  var parsedCode = esprima.parse(content, { range: true, comment: true, tokens: true }),
+      modules = getModules(parsedCode),
+      result = {},
+      ranges;
 
-  var output = content.replace(defineRegExp, function (match, exceptsPathsStr, moduleId, pathsStr, dependenciesStr, offset) {
-    var
-      // Unprocessed
-      text = content.substr(offset + match.length - 1),
+  result.results = modules.map(function(module) {
+    var moduleId = module.id,
+        paths = module.paths || [],
+        dependencies = module.dependencies || [],
+        unusedPaths,
+        unusedDependencies,
+        excepts = options.excepts,
+        exceptsPaths = module.exceptsPaths.concat(options.exceptsPaths);
 
-      // Module body without comments
-      source,
+    unusedDependencies = dependencies.filter(function(dependency, index) {
+      return !isException(excepts, dependency.name) &&
+             (index >= paths.length || !isException(exceptsPaths, paths[index].value)) &&
+             !findUseage(dependency.name, module.body);
+    });
 
-      paths, dependencies,
-      commentlessPathsStr, commentlessDependenciesStr,
-      unusedDependencies = [],
-      unusedPaths = [],
-      exceptsPaths = options.exceptsPaths,
-      excepts = options.excepts;
-
-    if (exceptsPathsStr) {
-      exceptsPaths = options.exceptsPaths.concat(splitByComma(exceptsPathsStr).map(function (p) { return p.token; }));
-    }
-
-    commentlessPathsStr = removeComments(pathsStr).source;
-    commentlessDependenciesStr = removeComments(dependenciesStr).source;
-
-    paths = commentlessPathsStr ? splitByComma(commentlessPathsStr).map(function (p) {
-      return {
-        path: p.token.substr(1, p.token.length - 2),
-        quote: p.token[0],
-        before: p.before,
-        after: p.after
-      };
-    }) : [];
-
-    dependencies = commentlessDependenciesStr ? splitByComma(commentlessDependenciesStr) : [];
-
-    if (text) {
-      var rcResult = removeComments(text);
-
-      if (rcResult) {
-        source = getModuleBody(rcResult.source);
-        var parsedCode = esprima.parse('function wrapper(){' + source + '}').body[0].body;
-
-        unusedDependencies = dependencies.filter(function (dependency) {
-          var index = dependencies.indexOf(dependency);
-          return !isException(excepts, dependency.token) &&
-                 (index >= paths.length || !isException(exceptsPaths, paths[index].path)) &&
-                 !findUseage(dependency.token, parsedCode);
-        });
-
-        unusedPaths = unusedDependencies.map(function (dependency) {
-          var index = dependencies.indexOf(dependency);
-          return index < paths.length ? paths[index] : void 0;
-        }).concat(paths.slice(dependencies.length)).filter(function(p) {
-          return p && !isException(exceptsPaths, p.path);
-        });
-
-        results.push({
-          moduleId: moduleId,
-          paths: paths.map(function (p) { return p.path; }),
-          unusedPaths: unusedPaths.map(function (p) { return p.path; }),
-          dependencies: dependencies.map(function (d) { return d.token; }),
-          unusedDependencies: unusedDependencies.map(function (d) { return d.token; })
-        });
-      }
-    }
+    unusedPaths = unusedDependencies.map(function(dependency) {
+      return paths[dependencies.indexOf(dependency)];
+    }).concat(paths.slice(dependencies.length)).filter(function(path) {
+      return path && !isException(exceptsPaths, path.value);
+    });
 
     if (options.removeUnusedDependencies) {
-      var usedDependencies = dependencies.filter(function (dependency) {
-        return unusedDependencies.indexOf(dependency) < 0;
-      });
-
-      var usedPaths = paths.filter(function (dependency) {
-        return unusedPaths.indexOf(dependency) < 0;
-      });
-
-      match = match.replace(pathsStr, usedPaths.map(function (p, index, array) {
-          var before = (index === 0 || !p.before) ? '' : p.before;
-          var after = (index === array.length || !p.after) ? '' : p.after;
-          return before + p.quote + p.path + p.quote + after;
-        }).join(','))
-        .replace(dependenciesStr, usedDependencies.map(function (d, index, array) {
-          var before = (index === 0 || !d.before) ? '' : d.before;
-          var after = (index === array.length || !d.after) ? '' : d.after;
-          return before + d.token + after;
-        }).join(','));
+      ranges = [];
+      ArrayProto.push.apply(ranges, unusedPaths.map(function(path) { return path.range; }));
+      ArrayProto.push.apply(ranges, unusedDependencies.map(function(dependency) { return dependency.range; }));
     }
 
-    return match;
+    return {
+      moduleId: moduleId ? moduleId.value : void 0,
+      paths: paths.map(function(path) { return path.value; }),
+      dependencies: dependencies.map(function(dep) { return dep.name; }),
+      unusedPaths: unusedPaths.map(function(path) { return path.value; }),
+      unusedDependencies: unusedDependencies.map(function(dep) { return dep.name; })
+    };
   });
 
-  var result = {
-    results: results
-  };
-
   if (options.removeUnusedDependencies) {
-    result.optimizedContent = output;
+    result.optimizedContent = optimizeContent(content, ranges);
   }
 
   return result;
