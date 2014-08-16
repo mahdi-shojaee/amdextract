@@ -91,6 +91,22 @@ describe('amdextract', function() {
         ); });
       });
 
+      describe('all paths are unused except three', function() {
+        var output = amdextract.parse(
+          "define('name', ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8'], function(a, b, c, d, e, f, g, h) { return d.concat(g); })",
+          { removeUnusedDependencies: true }
+        );
+        var result = output.results[0];
+        it('.moduleId', function() { should(result.moduleId).equal('name'); });
+        it('.paths', function() { result.paths.should.be.eql(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8']); });
+        it('.dependencies', function() { result.dependencies.should.be.eql(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']); });
+        it('.unusedPaths', function() { result.unusedPaths.should.be.eql(['p1', 'p2', 'p3', 'p5', 'p6', 'p8']); });
+        it('.unusedDependencies', function() { result.unusedDependencies.should.be.eql(['a', 'b', 'c', 'e', 'f', 'h']); });
+        it('.optimizedContent', function() { should(output.optimizedContent).be.equal(
+          "define('name', ['p4', 'p7'], function(d, g) { return d.concat(g); })"
+        ); });
+      });
+
       describe('number of paths is grater than number of variables', function() {
         var output = amdextract.parse(
           "define('name', ['p1', 'p2'], function(a) { return a; })",
