@@ -144,6 +144,10 @@ function extendRange(range, source) {
 }
 
 function optimizeContent(content, rangesToRemove) {
+  if (!rangesToRemove) {
+    return content;
+  }
+
   var output = '',
       start = 0;
 
