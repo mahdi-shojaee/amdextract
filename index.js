@@ -57,7 +57,7 @@ function getModules(parsedCode) {
 
         if (leadingComments) {
           leadingComments.forEach(function(leadingComment) {
-            var matches = /^\s*exceptsPaths\s*:\s*(\w+(?:\s*,\s*\w+)*)\s*$/m.exec(leadingComment.value);
+            var matches = /^\s*exceptsPaths\s*:\s*(\S+(?:\s*,\s*\S+)*)\s*$/m.exec(leadingComment.value);
 
             if (matches) {
               Array.prototype.push.apply(exceptsPaths, matches[1].split(/\s*,\s*/));
