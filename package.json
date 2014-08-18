@@ -1,6 +1,6 @@
 {
   "name": "amdextract",
-  "version": "2.1.3",
+  "version": "2.1.5",
   "description": "Uses AST to extract AMD modules, their parts and an optimized output without unused dependencies.",
   "main": "index.js",
   "scripts": {
