@@ -77,14 +77,18 @@ function getModules(parsedCode) {
         paths = expression.arguments[pathsIndex];
 
         if (paths && paths.type === 'ArrayExpression') {
-          module.paths = paths.elements;
+          module.paths = paths.elements.map(function(element) {
+            return estraverse.attachComments(element, comments, tokens);
+          });
         }
 
         callbackIndex = pathsIndex + 1;
         callback = expression.arguments[callbackIndex];
 
         if (callback && callback.type === 'FunctionExpression') {
-          module.dependencies = callback.params;
+          module.dependencies = callback.params.map(function(param) {
+            return estraverse.attachComments(param, comments, tokens);
+          });
           module.body = callback.body;
         }
 
@@ -129,27 +133,49 @@ function extendRange(range, source) {
       end = range[1],
       commaVisited = false;
 
-  for (var char = source[start]; regEx.test(char); char = source[--start]) {
-    if (char === ',') {
-      commaVisited = true;
-    }
-  }
-
-  if (!commaVisited) {
+  if (range.isForFirstElem) {
     for (var char = source[end]; regEx.test(char); char = source[++end])
+      ;
+  } else {
+    for (var char = source[start]; regEx.test(char); char = source[--start])
       ;
   }
 
   return [start + 1, end];
 }
 
-function optimizeContent(content, rangesToRemove) {
-  if (!rangesToRemove) {
-    return content;
-  }
+function optimizeContent(content, modules) {
+  var rangesToRemove = [],
+      output = '',
+      start = 0,
+      firstPath,
+      firstDependency;
 
-  var output = '',
-      start = 0;
+  modules.forEach(function(module) {
+    if (module.paths) { firstPath = module.paths[0]; }
+    if (module.dependencies) { firstDependency = module.dependencies[0]; }
+
+    module.unusedPaths.concat(module.unusedDependencies).forEach(function(item) {
+      var isFirstElem = item === firstPath || item === firstDependency;
+
+      if (item.leadingComments) {
+        item.leadingComments.forEach(function(comment) {
+          comment.range.isForFirstElem = isFirstElem;
+          rangesToRemove.push(comment.range);
+        });
+      }
+
+      item.range.isForFirstElem = isFirstElem;
+      rangesToRemove.push(item.range);
+
+      if (item.trailingComments) {
+        item.trailingComments.forEach(function(comment) {
+          comment.range.isForFirstElem = isFirstElem;
+          rangesToRemove.push(comment.range);
+        });
+      }
+    });
+  });
 
   rangesToRemove.forEach(function(range) {
     range = extendRange(range, content);
@@ -196,8 +222,7 @@ module.exports.parse = function (content, options) {
 
   var parsedCode = esprima.parse(content, { range: true, comment: true, tokens: true }),
       modules = getModules(parsedCode),
-      result = {},
-      ranges;
+      result = {};
 
   result.results = modules.map(function(module) {
     var moduleId = module.id,
@@ -220,11 +245,8 @@ module.exports.parse = function (content, options) {
       return path && !isException(exceptsPaths, path.value);
     });
 
-    if (options.removeUnusedDependencies) {
-      ranges = [];
-      ArrayProto.push.apply(ranges, unusedPaths.map(function(path) { return path.range; }));
-      ArrayProto.push.apply(ranges, unusedDependencies.map(function(dependency) { return dependency.range; }));
-    }
+    module.unusedDependencies = unusedDependencies;
+    module.unusedPaths = unusedPaths;
 
     return {
       moduleId: moduleId ? moduleId.value : void 0,
@@ -236,7 +258,7 @@ module.exports.parse = function (content, options) {
   });
 
   if (options.removeUnusedDependencies) {
-    result.optimizedContent = optimizeContent(content, ranges);
+    result.optimizedContent = optimizeContent(content, modules);
   }
 
   return result;

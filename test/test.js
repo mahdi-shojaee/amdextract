@@ -155,6 +155,22 @@ describe('amdextract', function() {
         ); });
       });
 
+      describe('comments between paths or dependencies', function() {
+        var output = amdextract.parse(
+          "define('name', ['p1', /**/ 'p2', 'p3' /**/, /**/ 'p4' /**/, /**/ 'p5' /**/], function(a, b, c, d) { return a.concat(d); })",
+          { removeUnusedDependencies: true }
+        );
+        var result = output.results[0];
+        it('.moduleId', function() { should(result.moduleId).equal('name'); });
+        it('.paths', function() { result.paths.should.be.eql(['p1', 'p2', 'p3', 'p4', 'p5']); });
+        it('.dependencies', function() { result.dependencies.should.be.eql(['a', 'b', 'c', 'd']); });
+        it('.unusedPaths', function() { result.unusedPaths.should.be.eql(['p2', 'p3', 'p5']); });
+        it('.unusedDependencies', function() { result.unusedDependencies.should.be.eql(['b', 'c']); });
+        it('.optimizedContent', function() { should(output.optimizedContent).be.equal(
+          "define('name', ['p1', /**/ 'p4' /**/], function(a, d) { return a.concat(d); })"
+        ); });
+      });
+
       describe('general test', function() {
         var output = parse('sample', { removeUnusedDependencies: true, exceptsPaths: ['t1', /^m/] });
         var result = output.results[0];
