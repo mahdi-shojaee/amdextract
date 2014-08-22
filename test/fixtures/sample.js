@@ -53,3 +53,21 @@ define('name', [/* This path is unused. */ "p1",
 
     var regEx = /\/download\//i;
 });
+
+define('secondmodule', [
+  'p1',
+
+  // Second path
+  /**
+   * Block comment
+   */
+  'p2',
+
+  // Third path
+  /**
+   * Third comment
+   */
+  'p3'
+  ], function(a, /* This dependency is not used. */ b, c) {
+  return a.concat(c);
+});

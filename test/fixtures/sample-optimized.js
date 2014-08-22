@@ -51,3 +51,15 @@ define('name', ["p2" // This paths is used.
 
     var regEx = /\/download\//i;
 });
+
+define('secondmodule', [
+  'p1',
+
+  // Third path
+  /**
+   * Third comment
+   */
+  'p3'
+  ], function(a, c) {
+  return a.concat(c);
+});

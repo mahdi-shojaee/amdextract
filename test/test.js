@@ -12,6 +12,13 @@ function parse(testName, options) {
 
 describe('amdextract', function() {
   describe('#parse()', function() {
+    describe('no module', function() {
+      var source = "var a = 0;";
+      var output = amdextract.parse(source, { removeUnusedDependencies: true });
+      it('.results', function() { should(output.results).be.an.Array.and.empty; });
+      it('.optimizedContent', function() { should(output.optimizedContent).be.equal(source); });
+    });
+
     describe('unnamed module', function() {
       describe('without paths', function() {
         var source = "define(function() {})";
