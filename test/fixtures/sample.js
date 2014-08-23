@@ -59,7 +59,7 @@ define('secondmodule', [
 
   // Second path
   /**
-   * Block comment
+   * Second comment
    */
   'p2',
 
