@@ -7,7 +7,9 @@ Uses AST to extract AMD modules, their parts and an optimized output without unu
 source.js
 ```js
 define('module1', ['p1', 'p2'], function (a, b) {
-	return a;
+    return (function(b) {
+      return b;
+    })(a);
 });
 
 define('module2', ['p1', 'p2', 'p3', 'p4'], function (a, b, c) {
@@ -42,7 +44,9 @@ Unused paths: p1, p3, p4
 Optimized output:
 
 define('module1', ['p1'], function (a) {
-	return a;
+    return (function(b) {
+      return b;
+    })(a);
 });
 
 define('module2', ['p2'], function (b) {
