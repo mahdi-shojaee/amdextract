@@ -1,12 +1,15 @@
 # amdextract [![Build Status](https://travis-ci.org/mehdishojaei/amdextract.png)](https://travis-ci.org/mehdishojaei/amdextract)
 
-Uses AST to extract AMD modules, their parts and an optimized output without unused dependencies.
+Uses AST to extract AMD modules, their parts and an optimized output without unused dependencies while keeping the original format.
 
 ## example
 
 source.js
 ```js
 define('module1', ['p1', 'p2'], function (a, b) {
+	/**
+	 * b is not used in this scope.
+	 */
     return (function(b) {
       return b;
     })(a);
@@ -44,6 +47,9 @@ Unused paths: p1, p3, p4
 Optimized output:
 
 define('module1', ['p1'], function (a) {
+	/**
+	 * b is not used in this scope.
+	 */
     return (function(b) {
       return b;
     })(a);
