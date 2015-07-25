@@ -15,7 +15,10 @@ describe('amdextract', function() {
     describe('no module', function() {
       var source = "var a = 0;";
       var output = amdextract.parse(source, { removeUnusedDependencies: true });
-      it('.results', function() { should(output.results).be.an.Array.and.empty; });
+      it('.results', function() {
+        should(output.results).be.an.Array;
+        should(output.results).be.empty();
+      });
       it('.optimizedContent', function() { should(output.optimizedContent).be.equal(source); });
     });
 
@@ -25,8 +28,8 @@ describe('amdextract', function() {
         var output = amdextract.parse(source, { removeUnusedDependencies: true });
         var result = output.results[0];
         it('.moduleId', function() { should(result.moduleId).equal(undefined); });
-        it('.paths', function() { result.paths.should.be.empty; });
-        it('.dependencies', function() { result.dependencies.should.be.empty; });
+        it('.paths', function() { result.paths.should.be.empty(); });
+        it('.dependencies', function() { result.dependencies.should.be.empty(); });
         it('.unusedPaths', function() { result.unusedPaths.should.be.eql([]); });
         it('.unusedDependencies', function() { result.unusedDependencies.should.be.eql([]); });
         it('.optimizedContent', function() { should(output.optimizedContent).be.equal(source); });
