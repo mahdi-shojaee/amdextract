@@ -127,6 +127,7 @@ Optimized `content` (original content without unused dependencies).
 This property is available when the value of option `removeUnusedDependencies` is true.
 
 ## Release History
+ * 2015-12-26   v2.1.13   Remove unused function "extendRange".
  * 2015-12-26   v2.1.12   Fixed indentation of samples in README.md.
  * 2015-12-26   v2.1.11   Fixed a bug in "optimizedContent" property.
  * 2015-07-25   v2.1.10   Update travis CI.
