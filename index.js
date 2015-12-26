@@ -148,46 +148,50 @@ function optimizeContent(content, modules) {
   var rangesToRemove = [],
       output = '',
       start = 0,
-      firstPath,
-      firstDependency;
+      regEx = /[\s,]/;
 
   modules.forEach(function(module) {
-    if (module.paths) { firstPath = module.paths[0]; }
-    if (module.dependencies) { firstDependency = module.dependencies[0]; }
-
     module.unusedPaths.concat(module.unusedDependencies).forEach(function(item) {
-      var isFirstElem = item === firstPath || item === firstDependency;
+      var range = [];
+
+      range[0] = item.range[0];
+      range[1] = item.range[1];
 
       if (item.leadingComments) {
-        item.leadingComments.forEach(function(comment) {
-          comment.range.isForFirstElem = isFirstElem;
-          rangesToRemove.push(comment.range);
-        });
+        range[0] = item.leadingComments[0].range[0];
       }
-
-      item.range.isForFirstElem = isFirstElem;
-      rangesToRemove.push(item.range);
 
       if (item.trailingComments) {
-        item.trailingComments.forEach(function(comment) {
-          comment.range.isForFirstElem = isFirstElem;
-          rangesToRemove.push(comment.range);
-        });
+        range[1] = item.trailingComments[item.trailingComments.length - 1].range[1];
       }
+
+      rangesToRemove.push(range);
     });
   });
 
-  rangesToRemove.forEach(function(range) {
-    range = extendRange(range, content);
+  rangesToRemove.forEach(function(range, index) {
+    var rangeStart = range[0] - 1,
+        rangeEnd = range[1],
+        commaVisited = false;
+
+    if (index === 0 || range[0] > rangesToRemove[index - 1][1]) {
+      for (var char = content[rangeStart]; regEx.test(char); char = content[--rangeStart]) {
+        if (char === ',') {
+          commaVisited = true;
+        }
+      }
+    }
+
+    if (!commaVisited) {
+      for (var char = content[rangeEnd]; regEx.test(char); char = content[++rangeEnd])
+        ;
+    }
+
+    range[0] = rangeStart + 1;
+    range[1] = rangeEnd;
 
     if (range[0] > start) {
-      var tmp = content.substring(start, range[0]);
-
-      if (/[[(]/.test(output[output.length - 1])) {
-        tmp = tmp.replace(/^[,\s]*/, '');
-      }
-
-      output += tmp;
+      output += content.substring(start, range[0]);
     }
 
     start = range[1];

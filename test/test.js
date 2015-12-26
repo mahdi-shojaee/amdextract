@@ -71,17 +71,17 @@ describe('amdextract', function() {
 
       describe('some paths are unused', function() {
         var output = amdextract.parse(
-          "define('name', ['p1', 'p2'], function(a, b) { return b; })",
+          "define('name', ['p1', 'p2', 'p3'], function(a, b, c) { return c; })",
           { removeUnusedDependencies: true }
         );
         var result = output.results[0];
         it('.moduleId', function() { should(result.moduleId).equal('name'); });
-        it('.paths', function() { result.paths.should.be.eql(['p1', 'p2']); });
-        it('.dependencies', function() { result.dependencies.should.be.eql(['a', 'b']); });
-        it('.unusedPaths', function() { result.unusedPaths.should.be.eql(['p1']); });
-        it('.unusedDependencies', function() { result.unusedDependencies.should.be.eql(['a']); });
+        it('.paths', function() { result.paths.should.be.eql(['p1', 'p2', 'p3']); });
+        it('.dependencies', function() { result.dependencies.should.be.eql(['a', 'b', 'c']); });
+        it('.unusedPaths', function() { result.unusedPaths.should.be.eql(['p1', 'p2']); });
+        it('.unusedDependencies', function() { result.unusedDependencies.should.be.eql(['a', 'b']); });
         it('.optimizedContent', function() { should(output.optimizedContent).be.equal(
-          "define('name', ['p2'], function(b) { return b; })"
+          "define('name', ['p3'], function(c) { return c; })"
         ); });
       });
 
