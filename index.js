@@ -127,23 +127,6 @@ function findUseage(variable, parsedCode) {
   });
 }
 
-function extendRange(range, source) {
-  var regEx = /[\s,]/,
-      start = range[0] - 1,
-      end = range[1],
-      commaVisited = false;
-
-  if (range.isForFirstElem) {
-    for (var char = source[end]; regEx.test(char); char = source[++end])
-      ;
-  } else {
-    for (var char = source[start]; regEx.test(char); char = source[--start])
-      ;
-  }
-
-  return [start + 1, end];
-}
-
 function optimizeContent(content, modules) {
   var rangesToRemove = [],
       output = '',
