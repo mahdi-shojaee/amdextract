@@ -22,14 +22,14 @@ function traverse(object, visitor) {
     return result;
   }
 
-  for (key in object) {
-    if (object.hasOwnProperty(key)) {
-      child = object[key];
-      if (typeof child === 'object' && child !== null) {
-        child.key = key;
-        if (result = traverse(child, visitor)) {
-          return result;
-        }
+  for (var i = 0, keys = Object.keys(object), length = keys.length; i < length; i++) {
+    key = keys[i];
+    child = object[key];
+
+    if (typeof child === 'object' && child !== null) {
+      child.key = key;
+      if (result = traverse(child, visitor)) {
+        return result;
       }
     }
   }
