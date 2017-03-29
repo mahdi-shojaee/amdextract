@@ -27,7 +27,9 @@ function traverse(object, visitor) {
     child = object[key];
 
     if (typeof child === 'object' && child !== null) {
-      child.key = key;
+      if (typeof child.key === 'undefined') {
+        child.key = key;
+      }
       if (result = traverse(child, visitor)) {
         return result;
       }
@@ -120,7 +122,8 @@ function findUseage(variable, parsedCode) {
 
       // Do not traverse function body.
       return false;
-    } else if (object.type === 'Identifier' && object.name === variable &&
+    } else if (object.type === 'Identifier' &&
+        (object.name === variable || (object.key && object.key.name && object.key.name.indexof(variable) !== -1)) &&
         object.key !== 'property' && object.key !== 'id') {
       return object;
     }
