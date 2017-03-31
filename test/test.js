@@ -192,6 +192,38 @@ describe('amdextract', function() {
         it('.unusedDependencies', function() { result.unusedDependencies.should.be.eql(['a']); });
         it('.optimizedContent', function() { should(output.optimizedContent).be.equal(optimizedContent); });
       });
+
+      describe('es6 computed properties postive match', function() {
+        var output = amdextract.parse(
+          "define('name', ['p1'], function(a) { var computed = {[a.const]: 'value'} })",
+          { removeUnusedDependencies: true }
+        );
+        var result = output.results[0];
+        it('.moduleId', function() { should(result.moduleId).equal('name'); });
+        it('.paths', function() { result.paths.should.be.eql(['p1']); });
+        it('.dependencies', function() { result.dependencies.should.be.eql(['a']); });
+        it('.unusedPaths', function() { result.unusedPaths.should.be.eql([]); });
+        it('.unusedDependencies', function() { result.unusedDependencies.should.be.eql([]); });
+        it('.optimizedContent', function() { should(output.optimizedContent).be.equal(
+          "define('name', ['p1'], function(a) { var computed = {[a.const]: 'value'} })"
+        ); });
+      })
+
+      describe('es6 computed properties negative match', function() {
+        var output = amdextract.parse(
+          "define('name', ['p1'], function(a) { var computed = {[b.const]: 'value'} })",
+          { removeUnusedDependencies: true }
+        );
+        var result = output.results[0];
+        it('.moduleId', function() { should(result.moduleId).equal('name'); });
+        it('.paths', function() { result.paths.should.be.eql(['p1']); });
+        it('.dependencies', function() { result.dependencies.should.be.eql(['a']); });
+        it('.unusedPaths', function() { result.unusedPaths.should.be.eql(['p1']); });
+        it('.unusedDependencies', function() { result.unusedDependencies.should.be.eql(['a']); });
+        it('.optimizedContent', function() { should(output.optimizedContent).be.equal(
+          "define('name', [], function() { var computed = {[b.const]: 'value'} })"
+        ); });
+      })
     });
   });
 });
