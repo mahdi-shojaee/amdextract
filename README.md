@@ -1,4 +1,4 @@
-# amdextract [![Build Status](https://travis-ci.org/mehdishojaei/amdextract.png)](https://travis-ci.org/mehdishojaei/amdextract)
+# amdextract [![Build Status](https://travis-ci.org/mehdishojaei/amdextract.png)](https://travis-ci.org/mehdishojaei/amdextract) [![Known Vulnerabilities](https://snyk.io/test/github/mehdishojaei/amdextract/badge.svg)](https://snyk.io/test/github/mehdishojaei/amdextract)
 
 Uses AST to extract AMD modules, their parts and an optimized output without unused dependencies while keeping the original format.
 
