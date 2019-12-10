@@ -11,8 +11,7 @@
 var esprima = require('esprima'),
     estraverse = require('estraverse');
 
-var toString = Object.prototype.toString,
-    ArrayProto = Array.prototype;
+var toString = Object.prototype.toString;
 
 function traverse(object, visitor) {
   var key, child,

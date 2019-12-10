@@ -1,6 +1,6 @@
 {
   "name": "amdextract",
-  "version": "2.1.14",
+  "version": "3.0.0",
   "description": "Uses AST to extract AMD modules, their parts and an optimized output without unused dependencies while keeping the original format.",
   "main": "index.js",
   "scripts": {
@@ -33,11 +33,11 @@
   },
   "homepage": "https://github.com/mehdishojaei/amdextract",
   "devDependencies": {
-    "mocha": "^2.2.5",
-    "should": "^7.0.2"
+    "mocha": "^6.2.2",
+    "should": "^13.2.3"
   },
   "dependencies": {
-    "esprima": "^2.4.1",
-    "estraverse": "^4.1.0"
+    "esprima": "^4.0.1",
+    "estraverse": "^4.3.0"
   }
 }
